@@ -268,6 +268,48 @@
         color: #555;
       }
 
+      .snapshot-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+      .snapshot-pill {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-left: 4px solid #8e44ad;
+        border-radius: 6px;
+        padding: 10px 14px;
+        min-width: 130px;
+      }
+      .snapshot-pill.low-cov {
+        border-left-color: #bdc3c7;
+        opacity: 0.7;
+      }
+      .snapshot-date {
+        font-weight: 600;
+        font-size: 13px;
+        color: #2c3e50;
+        margin-bottom: 3px;
+      }
+      .snapshot-stat {
+        font-size: 11px;
+        color: #7f8c8d;
+      }
+      .snapshot-ratio {
+        font-size: 20px;
+        font-weight: 700;
+        color: #8e44ad;
+        margin-top: 4px;
+      }
+      .snapshot-pill.low-cov .snapshot-ratio {
+        color: #bdc3c7;
+      }
+      .chart-wrapper-wide {
+        max-width: 100%;
+        height: 280px;
+      }
+
       .loading {
         text-align: center;
         padding: 60px;
@@ -306,6 +348,18 @@
 
       <div id="dashboard" class="main-content" style="display: none">
         <span class="data-note" id="dataNoteLabel"></span>
+        <span id="slSnapshotSelector" style="display:none; margin-left:8px; vertical-align:middle">
+          <select id="slSnapshotSelect" onchange="setSlSnapshot(this.value)"
+            style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;color:#2c3e50">
+            <option value="jul725">Jul 7, 2025</option>
+            <option value="average">Average across snapshots</option>
+            <option value="combined">All snapshots (combined)</option>
+            <option value="sep824">Sep 8, 2024</option>
+            <option value="sep2824">Sep 28, 2024</option>
+            <option value="nov1924">Nov 19, 2024</option>
+            <option value="feb225">Feb 2, 2025</option>
+          </select>
+        </span>
         <span class="mode-toggle" style="display: none">
           <button
             class="mode-btn active"
@@ -346,6 +400,8 @@
           </div>
         </div>
 
+        <div id="methodologyNote" style="font-size:12px;color:#7f8c8d;background:#f8f9fa;border-left:3px solid #bdc3c7;padding:10px 14px;border-radius:0 4px 4px 0;margin-bottom:20px;line-height:1.6"></div>
+
         <div class="chart-section">
           <div class="section-title">
             Incarceration Rate: US-Born vs. Foreign-Born (per 100,000)
@@ -353,6 +409,17 @@
           <div class="chart-wrapper">
             <canvas id="nativeForeignChart"></canvas>
           </div>
+        </div>
+
+        <div id="slTimeSeries" class="chart-section" style="display:none">
+          <div class="section-title">Incarceration Rate Ratio Over Time — Salt Lake County</div>
+          <div class="snapshot-pills" id="snapshotPills"></div>
+          <div class="chart-wrapper chart-wrapper-wide">
+            <canvas id="timeSeriesChart"></canvas>
+          </div>
+          <p style="font-size:11px;color:#aaa;margin-top:8px">
+            Ratio = foreign-born rate ÷ US-born rate (per 100K). Each point is an independent jail roster scrape.
+          </p>
         </div>
 
         <div class="table-section">
@@ -1011,6 +1078,19 @@
       let activeCounty = 'sl';
       let countyRawCache = {}; // id → { inmateRows, popRows }
       let countMode = 'bookings'; // 'bookings' | 'unique'
+
+      // ─── SL snapshot selector ─────────────────────────────────────────────────
+      const SL_SNAPSHOT_OPTIONS = [
+        { key: 'jul725',   label: 'Jul 7, 2025',               file: 'data/salt-lake-county/jul725.csv' },
+        { key: 'average',  label: 'Average across snapshots',   file: null },
+        { key: 'combined', label: 'All snapshots (combined)',   file: 'data/salt-lake-county/inmate_combined.csv' },
+        { key: 'sep824',   label: 'Sep 8, 2024',               file: 'data/salt-lake-county/sep824.csv' },
+        { key: 'sep2824',  label: 'Sep 28, 2024',              file: 'data/salt-lake-county/sep2824.csv' },
+        { key: 'nov1924',  label: 'Nov 19, 2024',              file: 'data/salt-lake-county/nov1924.csv' },
+        { key: 'feb225',   label: 'Feb 2, 2025',               file: 'data/salt-lake-county/feb225.csv' },
+      ];
+      let activeSlSnapshot = 'jul725';
+      const slFileCache = {}; // key → inmateRows
       let tableData = [];
       let sortCol = 'rate';
       let sortAsc = false;
@@ -1018,6 +1098,39 @@
 
       // ─── Boot ─────────────────────────────────────────────────────────────────
       loadCounty('sl');
+
+      function setSlSnapshot(key) {
+        activeSlSnapshot = key;
+        const { popRows } = countyRawCache['sl'];
+
+        if (key === 'average') {
+          // Use combined for the country table; override stat counts with snapshot averages
+          const tableRows = slFileCache['combined'] || countyRawCache['sl'].inmateRows;
+          const result = processData('sl', tableRows, popRows);
+          result.nativeBorn = Math.round(
+            SL_SNAPSHOTS.reduce((s, p) => s + p.native, 0) / SL_SNAPSHOTS.length
+          );
+          result.foreignBorn = Math.round(
+            SL_SNAPSHOTS.reduce((s, p) => s + p.foreign, 0) / SL_SNAPSHOTS.length
+          );
+          render(result);
+          return;
+        }
+
+        const opt = SL_SNAPSHOT_OPTIONS.find((o) => o.key === key);
+        if (slFileCache[key]) {
+          render(processData('sl', slFileCache[key], popRows));
+        } else {
+          Papa.parse(opt.file, {
+            download: true,
+            header: true,
+            complete(r) {
+              slFileCache[key] = r.data.filter((row) => row.cob !== undefined);
+              render(processData('sl', slFileCache[key], popRows));
+            },
+          });
+        }
+      }
 
       function switchCounty(id) {
         activeCounty = id;
@@ -1027,6 +1140,8 @@
             (i === 0 && id === 'sl') || (i === 1 && id === 'ut')
           );
         });
+        document.getElementById('slSnapshotSelector').style.display =
+          id === 'sl' ? '' : 'none';
         document.querySelector('.mode-toggle').style.display =
           id === 'sl' ? 'none' : '';
         if (id === 'sl' && countMode !== 'bookings') setCountMode('bookings');
@@ -1052,7 +1167,15 @@
 
       function renderCounty(id) {
         const { inmateRows, popRows } = countyRawCache[id];
-        render(processData(id, inmateRows, popRows));
+        if (id === 'sl') {
+          if (slFileCache[activeSlSnapshot]) {
+            render(processData(id, slFileCache[activeSlSnapshot], popRows));
+          } else {
+            setSlSnapshot(activeSlSnapshot);
+          }
+        } else {
+          render(processData(id, inmateRows, popRows));
+        }
       }
 
       function loadCounty(id) {
@@ -1065,6 +1188,7 @@
         function tryProcess() {
           if (!inmatesDone || !popDone) return;
           countyRawCache[id] = { inmateRows, popRows };
+          if (id === 'sl') slFileCache['combined'] = inmateRows;
           if (activeCounty === id) renderCounty(id);
         }
 
@@ -1268,7 +1392,17 @@
         const nativeRate = (nativeBorn / nativePop) * 100000;
         const foreignRate = (foreignBorn / foreignPop) * 100000;
 
-        document.getElementById('dataNoteLabel').textContent = cfg.note;
+        const noteText = data.id === 'sl'
+          ? (SL_SNAPSHOT_OPTIONS.find((o) => o.key === activeSlSnapshot) || {}).label || cfg.note
+          : cfg.note;
+        document.getElementById('dataNoteLabel').textContent = noteText;
+
+        const methodology = {
+          sl: `<strong>Salt Lake County methodology:</strong> Inmate data scraped from the Salt Lake County Inmate Management System (IML). Country of birth is self-reported at booking. US-born inmates are identified by US state names in the birth country field. Rates use ACS 2020–2024 5-year estimates for the county foreign-born population denominator.<br><br>
+<strong>Why the combined view shows a lower ratio than individual snapshots:</strong> Each snapshot captures who is in jail on one specific day. Inmates with longer stays appear in multiple snapshots and get counted each time — so in any given daily snapshot, long-stay inmates are over-represented. The data shows foreign-born inmates average <strong>1.83 snapshot appearances</strong> vs. <strong>1.60 for US-born</strong>, and inmates present across all five snapshots (10+ months continuously) are <strong>32% foreign-born</strong> — nearly double the 17% seen among short-stay inmates. The combined view counts every unique individual exactly once regardless of how long they were jailed, which removes this long-stay weighting and brings the ratio down. Individual date snapshots are the most accurate picture of who is in jail at any given moment. The <strong>average across snapshots</strong> option uses the mean daily count of US-born (1,576) and foreign-born (410) inmates across all five dates for the stat cards and ratio, while the country breakdown table draws from the full combined dataset — offering a middle ground that smooths out day-to-day variation without the long-stay bias of the combined view. <em>Not directly comparable to Utah County data.</em>`,
+          ut: `<strong>Utah County methodology:</strong> Inmate data covers all bookings from Jan 2023–Dec 2024, obtained from county records. Birth country is recorded as "USA" for all US-born (never by state). The dataset represents cumulative bookings over two years, not a point-in-time count — incarceration rates reflect the likelihood of being booked at any point during the period, not daily jail population. Rates use ACS 2020–2024 5-year estimates for the county foreign-born population denominator. <em>Not directly comparable to Salt Lake County data.</em>`,
+        }[data.id];
+        document.getElementById('methodologyNote').innerHTML = methodology;
         document.getElementById('statTotal').textContent = (
           nativeBorn + foreignBorn
         ).toLocaleString();
@@ -1294,6 +1428,14 @@
         }
 
         renderChart(nativeRate, foreignRate);
+
+        const isSL = data.id === 'sl';
+        document.getElementById('slTimeSeries').style.display = isSL ? '' : 'none';
+        document.getElementById('slSnapshotSelector').style.display = isSL ? '' : 'none';
+        if (isSL) {
+          document.getElementById('slSnapshotSelect').value = activeSlSnapshot;
+          renderTimeSeries();
+        }
 
         tableData = rows;
         sortCol = 'rate';
@@ -1438,6 +1580,88 @@
           .replace(/\bA\b/g, 'a')
           .replace(/\b(Inc)\b/g, 'inc.')
           .replace(/^./, (c) => c.toUpperCase()); // always capitalize first char
+      }
+
+      // ─── SL County time-series (pre-computed from full-COB snapshot files) ──────
+      const SL_SNAPSHOTS = [
+        { label: 'Sep 8, 2024',  native: 1562, foreign: 406 },
+        { label: 'Sep 28, 2024', native: 1522, foreign: 392 },
+        { label: 'Nov 19, 2024', native: 1539, foreign: 420 },
+        { label: 'Feb 2, 2025',  native: 1575, foreign: 421 },
+        { label: 'Jul 7, 2025',  native: 1681, foreign: 410 },
+      ];
+
+      let tsChart = null;
+
+      function renderTimeSeries() {
+        const nativePop = COUNTIES.sl.totalPop - COUNTIES.sl.foreignBornPop;
+        const foreignPop = COUNTIES.sl.foreignBornPop;
+
+        const points = SL_SNAPSHOTS.map((s) => {
+          const nativeRate = (s.native / nativePop) * 100000;
+          const foreignRate = (s.foreign / foreignPop) * 100000;
+          return { ...s, nativeRate, foreignRate, ratio: foreignRate / nativeRate };
+        });
+
+        // Pills
+        document.getElementById('snapshotPills').innerHTML = points
+          .map(
+            (p) => `<div class="snapshot-pill">
+              <div class="snapshot-date">${p.label}</div>
+              <div class="snapshot-stat">US-Born: ${p.nativeRate.toFixed(1)}/100K</div>
+              <div class="snapshot-stat">Foreign-Born: ${p.foreignRate.toFixed(1)}/100K</div>
+              <div class="snapshot-ratio">${p.ratio.toFixed(2)}&times;</div>
+            </div>`
+          )
+          .join('');
+
+        // Chart
+        const ctx = document.getElementById('timeSeriesChart');
+        if (tsChart) tsChart.destroy();
+        tsChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: points.map((p) => p.label),
+            datasets: [
+              {
+                label: 'Foreign-Born Rate / US-Born Rate',
+                data: points.map((p) => +p.ratio.toFixed(3)),
+                borderColor: '#8e44ad',
+                backgroundColor: 'rgba(142,68,173,0.08)',
+                pointBackgroundColor: '#8e44ad',
+                borderWidth: 2,
+                pointRadius: 5,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => {
+                    const p = points[ctx.dataIndex];
+                    return [
+                      ` Ratio: ${p.ratio.toFixed(2)}×`,
+                      ` US-Born: ${p.nativeRate.toFixed(1)}/100K`,
+                      ` Foreign-Born: ${p.foreignRate.toFixed(1)}/100K`,
+                    ];
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: false,
+                title: { display: true, text: 'Foreign-Born Rate ÷ US-Born Rate' },
+                ticks: { callback: (v) => v + '×' },
+              },
+            },
+          },
+        });
       }
 
       function showError(msg) {
