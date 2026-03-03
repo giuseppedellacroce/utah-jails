@@ -348,9 +348,21 @@
 
       <div id="dashboard" class="main-content" style="display: none">
         <span class="data-note" id="dataNoteLabel"></span>
-        <span id="slSnapshotSelector" style="display:none; margin-left:8px; vertical-align:middle">
-          <select id="slSnapshotSelect" onchange="setSlSnapshot(this.value)"
-            style="font-size:13px;padding:4px 8px;border:1px solid #ddd;border-radius:4px;color:#2c3e50">
+        <span
+          id="slSnapshotSelector"
+          style="display: none; margin-left: 8px; vertical-align: middle"
+        >
+          <select
+            id="slSnapshotSelect"
+            onchange="setSlSnapshot(this.value)"
+            style="
+              font-size: 13px;
+              padding: 4px 8px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              color: #2c3e50;
+            "
+          >
             <option value="jul725">Jul 7, 2025</option>
             <option value="average">Average across snapshots</option>
             <option value="combined">All snapshots (combined)</option>
@@ -376,6 +388,10 @@
             Unique Individuals
           </button>
         </span>
+        <span class="mode-toggle" style="margin-left:8px;vertical-align:middle">
+          <button class="mode-btn active" id="acs5yr" onclick="setACS('5yr')">ACS 2020–2024</button>
+          <button class="mode-btn" id="acs1yr" onclick="setACS('1yr')">ACS 2024</button>
+        </span>
 
         <div class="stats-grid">
           <div class="stat-card">
@@ -396,11 +412,25 @@
           </div>
           <div class="stat-card purple">
             <div class="stat-value" id="statLikelihood">—</div>
-            <div class="stat-label" id="statLikelihoodLabel">Relative Likelihood</div>
+            <div class="stat-label" id="statLikelihoodLabel">
+              Relative Likelihood
+            </div>
           </div>
         </div>
 
-        <div id="methodologyNote" style="font-size:12px;color:#7f8c8d;background:#f8f9fa;border-left:3px solid #bdc3c7;padding:10px 14px;border-radius:0 4px 4px 0;margin-bottom:20px;line-height:1.6"></div>
+        <div
+          id="methodologyNote"
+          style="
+            font-size: 12px;
+            color: #7f8c8d;
+            background: #f8f9fa;
+            border-left: 3px solid #bdc3c7;
+            padding: 10px 14px;
+            border-radius: 0 4px 4px 0;
+            margin-bottom: 20px;
+            line-height: 1.6;
+          "
+        ></div>
 
         <div class="chart-section">
           <div class="section-title">
@@ -411,14 +441,17 @@
           </div>
         </div>
 
-        <div id="slTimeSeries" class="chart-section" style="display:none">
-          <div class="section-title">Incarceration Rate Ratio Over Time — Salt Lake County</div>
+        <div id="slTimeSeries" class="chart-section" style="display: none">
+          <div class="section-title">
+            Incarceration Rate Ratio Over Time — Salt Lake County
+          </div>
           <div class="snapshot-pills" id="snapshotPills"></div>
           <div class="chart-wrapper chart-wrapper-wide">
             <canvas id="timeSeriesChart"></canvas>
           </div>
-          <p style="font-size:11px;color:#aaa;margin-top:8px">
-            Ratio = foreign-born rate ÷ US-born rate (per 100K). Each point is an independent jail roster scrape.
+          <p style="font-size: 11px; color: #aaa; margin-top: 8px">
+            Ratio = foreign-born rate ÷ US-born rate (per 100K). Each point is
+            an independent jail roster scrape.
           </p>
         </div>
 
@@ -426,6 +459,9 @@
           <div class="section-title">
             Incarceration Rates by Country / Region of Birth (per 100,000)
           </div>
+          <p style="font-size:11px;color:#aaa;margin-bottom:10px">
+            Country/region population estimates use ACS 2020–2024 5-year data only, regardless of the ACS toggle above.
+          </p>
           <div class="table-controls">
             <input
               type="text"
@@ -651,12 +687,22 @@
         'OTHER NORTHERN AMERICA': 'NORTHERN AMERICA',
       };
 
+      // ─── ACS population estimates ──────────────────────────────────────────────
+      const ACS_POP = {
+        '5yr': {
+          sl: { totalPop: 1196523, foreignBornPop: 161142 },
+          ut: { totalPop: 705400,  foreignBornPop: 58150  },
+        },
+        '1yr': {
+          sl: { totalPop: 1216274, foreignBornPop: 173681 },
+          ut: { totalPop: 747234,  foreignBornPop: 72068  },
+        },
+      };
+
       // ─── County configs ────────────────────────────────────────────────────────
       const COUNTIES = {
         sl: {
           name: 'Salt Lake County',
-          totalPop: 1185000,
-          foreignBornPop: 173681,
           inmatesFile: 'data/salt-lake-county/inmate_combined.csv',
           popFile: 'data/salt-lake-county/foreignbornpop.csv',
           inmateField: 'cob',
@@ -664,8 +710,6 @@
         },
         ut: {
           name: 'Utah County',
-          totalPop: 705000,
-          foreignBornPop: 58150,
           inmatesFile: 'data/utah-county/utah_county_inmates.csv',
           popFile: 'data/utah-county/ut_county_foreign_born_named.csv',
           inmateField: 'birth_country',
@@ -1081,16 +1125,41 @@
 
       // ─── SL snapshot selector ─────────────────────────────────────────────────
       const SL_SNAPSHOT_OPTIONS = [
-        { key: 'jul725',   label: 'Jul 7, 2025',               file: 'data/salt-lake-county/jul725.csv' },
-        { key: 'average',  label: 'Average across snapshots',   file: null },
-        { key: 'combined', label: 'All snapshots (combined)',   file: 'data/salt-lake-county/inmate_combined.csv' },
-        { key: 'sep824',   label: 'Sep 8, 2024',               file: 'data/salt-lake-county/sep824.csv' },
-        { key: 'sep2824',  label: 'Sep 28, 2024',              file: 'data/salt-lake-county/sep2824.csv' },
-        { key: 'nov1924',  label: 'Nov 19, 2024',              file: 'data/salt-lake-county/nov1924.csv' },
-        { key: 'feb225',   label: 'Feb 2, 2025',               file: 'data/salt-lake-county/feb225.csv' },
+        {
+          key: 'jul725',
+          label: 'Jul 7, 2025',
+          file: 'data/salt-lake-county/jul725.csv',
+        },
+        { key: 'average', label: 'Average across snapshots', file: null },
+        {
+          key: 'combined',
+          label: 'All snapshots (combined)',
+          file: 'data/salt-lake-county/inmate_combined.csv',
+        },
+        {
+          key: 'sep824',
+          label: 'Sep 8, 2024',
+          file: 'data/salt-lake-county/sep824.csv',
+        },
+        {
+          key: 'sep2824',
+          label: 'Sep 28, 2024',
+          file: 'data/salt-lake-county/sep2824.csv',
+        },
+        {
+          key: 'nov1924',
+          label: 'Nov 19, 2024',
+          file: 'data/salt-lake-county/nov1924.csv',
+        },
+        {
+          key: 'feb225',
+          label: 'Feb 2, 2025',
+          file: 'data/salt-lake-county/feb225.csv',
+        },
       ];
       let activeSlSnapshot = 'jul725';
       const slFileCache = {}; // key → inmateRows
+      let acsVersion = '5yr';
       let tableData = [];
       let sortCol = 'rate';
       let sortAsc = false;
@@ -1099,19 +1168,28 @@
       // ─── Boot ─────────────────────────────────────────────────────────────────
       loadCounty('sl');
 
+      function setACS(version) {
+        acsVersion = version;
+        document.getElementById('acs5yr').classList.toggle('active', version === '5yr');
+        document.getElementById('acs1yr').classList.toggle('active', version === '1yr');
+        if (countyRawCache[activeCounty]) renderCounty(activeCounty);
+      }
+
       function setSlSnapshot(key) {
         activeSlSnapshot = key;
         const { popRows } = countyRawCache['sl'];
 
         if (key === 'average') {
           // Use combined for the country table; override stat counts with snapshot averages
-          const tableRows = slFileCache['combined'] || countyRawCache['sl'].inmateRows;
+          const tableRows =
+            slFileCache['combined'] || countyRawCache['sl'].inmateRows;
           const result = processData('sl', tableRows, popRows);
           result.nativeBorn = Math.round(
             SL_SNAPSHOTS.reduce((s, p) => s + p.native, 0) / SL_SNAPSHOTS.length
           );
           result.foreignBorn = Math.round(
-            SL_SNAPSHOTS.reduce((s, p) => s + p.foreign, 0) / SL_SNAPSHOTS.length
+            SL_SNAPSHOTS.reduce((s, p) => s + p.foreign, 0) /
+              SL_SNAPSHOTS.length
           );
           render(result);
           return;
@@ -1377,8 +1455,8 @@
           foreignBorn,
           noCOB,
           rows,
-          nativePop: cfg.totalPop - cfg.foreignBornPop,
-          foreignPop: cfg.foreignBornPop,
+          nativePop: ACS_POP[acsVersion][id].totalPop - ACS_POP[acsVersion][id].foreignBornPop,
+          foreignPop: ACS_POP[acsVersion][id].foreignBornPop,
         };
       }
 
@@ -1392,15 +1470,19 @@
         const nativeRate = (nativeBorn / nativePop) * 100000;
         const foreignRate = (foreignBorn / foreignPop) * 100000;
 
-        const noteText = data.id === 'sl'
-          ? (SL_SNAPSHOT_OPTIONS.find((o) => o.key === activeSlSnapshot) || {}).label || cfg.note
-          : cfg.note;
+        const noteText =
+          data.id === 'sl'
+            ? (
+                SL_SNAPSHOT_OPTIONS.find((o) => o.key === activeSlSnapshot) ||
+                {}
+              ).label || cfg.note
+            : cfg.note;
         document.getElementById('dataNoteLabel').textContent = noteText;
 
         const methodology = {
-          sl: `<strong>Salt Lake County methodology:</strong> Inmate data scraped from the Salt Lake County Inmate Management System (IML). Country of birth is self-reported at booking. US-born inmates are identified by US state names in the birth country field. Rates use ACS 2020–2024 5-year estimates for the county foreign-born population denominator.<br><br>
+          sl: `<strong>Salt Lake County methodology:</strong> Inmate data scraped from the Salt Lake County Inmate Management System (IML). Country of birth is self-reported at booking. US-born inmates are identified by US state names in the birth country field. The <strong>ACS toggle</strong> controls the county-level population denominator used for the top-line rates and ratio: <em>ACS 2020–2024</em> uses the 5-year estimate (total: 1,196,523; foreign-born: 161,142) and <em>ACS 2024</em> uses the 1-year estimate (total: 1,216,274; foreign-born: 173,681). The country/region breakdown table always uses ACS 2020–2024 5-year data as that is the only source with country-level population detail.<br><br>
 <strong>Why the combined view shows a lower ratio than individual snapshots:</strong> Each snapshot captures who is in jail on one specific day. Inmates with longer stays appear in multiple snapshots and get counted each time — so in any given daily snapshot, long-stay inmates are over-represented. The data shows foreign-born inmates average <strong>1.83 snapshot appearances</strong> vs. <strong>1.60 for US-born</strong>, and inmates present across all five snapshots (10+ months continuously) are <strong>32% foreign-born</strong> — nearly double the 17% seen among short-stay inmates. The combined view counts every unique individual exactly once regardless of how long they were jailed, which removes this long-stay weighting and brings the ratio down. Individual date snapshots are the most accurate picture of who is in jail at any given moment. The <strong>average across snapshots</strong> option uses the mean daily count of US-born (1,576) and foreign-born (410) inmates across all five dates for the stat cards and ratio, while the country breakdown table draws from the full combined dataset — offering a middle ground that smooths out day-to-day variation without the long-stay bias of the combined view. <em>Not directly comparable to Utah County data.</em>`,
-          ut: `<strong>Utah County methodology:</strong> Inmate data covers all bookings from Jan 2023–Dec 2024, obtained from county records. Birth country is recorded as "USA" for all US-born (never by state). The dataset represents cumulative bookings over two years, not a point-in-time count — incarceration rates reflect the likelihood of being booked at any point during the period, not daily jail population. Rates use ACS 2020–2024 5-year estimates for the county foreign-born population denominator. <em>Not directly comparable to Salt Lake County data.</em>`,
+          ut: `<strong>Utah County methodology:</strong> Inmate data covers all bookings from Jan 2023–Dec 2024, obtained from county records. Birth country is recorded as "USA" for all US-born (never by state). The dataset represents cumulative bookings over two years, not a point-in-time count — incarceration rates reflect the likelihood of being booked at any point during the period, not daily jail population. The <strong>ACS toggle</strong> controls the county-level population denominator: <em>ACS 2020–2024</em> uses the 5-year estimate (total: 705,400; foreign-born: 58,150) and <em>ACS 2024</em> uses the 1-year estimate (total: 747,234; foreign-born: 72,068). The country/region breakdown table always uses ACS 2020–2024 5-year data. <em>Not directly comparable to Salt Lake County data.</em>`,
         }[data.id];
         document.getElementById('methodologyNote').innerHTML = methodology;
         document.getElementById('statTotal').textContent = (
@@ -1430,8 +1512,12 @@
         renderChart(nativeRate, foreignRate);
 
         const isSL = data.id === 'sl';
-        document.getElementById('slTimeSeries').style.display = isSL ? '' : 'none';
-        document.getElementById('slSnapshotSelector').style.display = isSL ? '' : 'none';
+        document.getElementById('slTimeSeries').style.display = isSL
+          ? ''
+          : 'none';
+        document.getElementById('slSnapshotSelector').style.display = isSL
+          ? ''
+          : 'none';
         if (isSL) {
           document.getElementById('slSnapshotSelect').value = activeSlSnapshot;
           renderTimeSeries();
@@ -1584,23 +1670,28 @@
 
       // ─── SL County time-series (pre-computed from full-COB snapshot files) ──────
       const SL_SNAPSHOTS = [
-        { label: 'Sep 8, 2024',  native: 1562, foreign: 406 },
+        { label: 'Sep 8, 2024', native: 1562, foreign: 406 },
         { label: 'Sep 28, 2024', native: 1522, foreign: 392 },
         { label: 'Nov 19, 2024', native: 1539, foreign: 420 },
-        { label: 'Feb 2, 2025',  native: 1575, foreign: 421 },
-        { label: 'Jul 7, 2025',  native: 1681, foreign: 410 },
+        { label: 'Feb 2, 2025', native: 1575, foreign: 421 },
+        { label: 'Jul 7, 2025', native: 1681, foreign: 410 },
       ];
 
       let tsChart = null;
 
       function renderTimeSeries() {
-        const nativePop = COUNTIES.sl.totalPop - COUNTIES.sl.foreignBornPop;
-        const foreignPop = COUNTIES.sl.foreignBornPop;
+        const nativePop = ACS_POP[acsVersion].sl.totalPop - ACS_POP[acsVersion].sl.foreignBornPop;
+        const foreignPop = ACS_POP[acsVersion].sl.foreignBornPop;
 
         const points = SL_SNAPSHOTS.map((s) => {
           const nativeRate = (s.native / nativePop) * 100000;
           const foreignRate = (s.foreign / foreignPop) * 100000;
-          return { ...s, nativeRate, foreignRate, ratio: foreignRate / nativeRate };
+          return {
+            ...s,
+            nativeRate,
+            foreignRate,
+            ratio: foreignRate / nativeRate,
+          };
         });
 
         // Pills
@@ -1608,8 +1699,12 @@
           .map(
             (p) => `<div class="snapshot-pill">
               <div class="snapshot-date">${p.label}</div>
-              <div class="snapshot-stat">US-Born: ${p.nativeRate.toFixed(1)}/100K</div>
-              <div class="snapshot-stat">Foreign-Born: ${p.foreignRate.toFixed(1)}/100K</div>
+              <div class="snapshot-stat">US-Born: ${p.nativeRate.toFixed(
+                1
+              )}/100K</div>
+              <div class="snapshot-stat">Foreign-Born: ${p.foreignRate.toFixed(
+                1
+              )}/100K</div>
               <div class="snapshot-ratio">${p.ratio.toFixed(2)}&times;</div>
             </div>`
           )
@@ -1656,7 +1751,10 @@
             scales: {
               y: {
                 beginAtZero: false,
-                title: { display: true, text: 'Foreign-Born Rate ÷ US-Born Rate' },
+                title: {
+                  display: true,
+                  text: 'Foreign-Born Rate ÷ US-Born Rate',
+                },
                 ticks: { callback: (v) => v + '×' },
               },
             },
