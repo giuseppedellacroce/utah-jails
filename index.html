@@ -116,6 +116,9 @@
       .stat-card.gray {
         border-left-color: #95a5a6;
       }
+      .stat-card.purple {
+        border-left-color: #8e44ad;
+      }
 
       .stat-value {
         font-size: 28px;
@@ -336,6 +339,10 @@
           <div class="stat-card red">
             <div class="stat-value" id="statForeignRate">—</div>
             <div class="stat-label">Foreign-Born Rate / 100K</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-value" id="statLikelihood">—</div>
+            <div class="stat-label" id="statLikelihoodLabel">Relative Likelihood</div>
           </div>
         </div>
 
@@ -1271,6 +1278,20 @@
           nativeRate.toFixed(1);
         document.getElementById('statForeignRate').textContent =
           foreignRate.toFixed(1);
+
+        const ratio = foreignRate / nativeRate;
+        const ratioEl = document.getElementById('statLikelihood');
+        const ratioLabelEl = document.getElementById('statLikelihoodLabel');
+        if (!isFinite(ratio) || nativeRate === 0) {
+          ratioEl.textContent = '—';
+          ratioLabelEl.textContent = 'Relative Likelihood';
+        } else if (ratio >= 1) {
+          ratioEl.textContent = ratio.toFixed(1) + '×';
+          ratioLabelEl.textContent = 'More Likely (Foreign-Born vs. US-Born)';
+        } else {
+          ratioEl.textContent = (1 / ratio).toFixed(1) + '×';
+          ratioLabelEl.textContent = 'Less Likely (Foreign-Born vs. US-Born)';
+        }
 
         renderChart(nativeRate, foreignRate);
 
