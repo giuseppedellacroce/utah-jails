@@ -1,0 +1,728 @@
+{
+    "release": {
+        "id": "acs2024_5yr",
+        "name": "ACS 2024 5-year",
+        "years": "2020-2024"
+    },
+    "tables": {
+        "B05006": {
+            "columns": {
+                "B05006001": {
+                    "indent": 0,
+                    "name": "Total:"
+                },
+                "B05006002": {
+                    "indent": 1,
+                    "name": "Europe:"
+                },
+                "B05006003": {
+                    "indent": 2,
+                    "name": "Northern Europe:"
+                },
+                "B05006004": {
+                    "indent": 3,
+                    "name": "Denmark"
+                },
+                "B05006005": {
+                    "indent": 3,
+                    "name": "Ireland"
+                },
+                "B05006006": {
+                    "indent": 3,
+                    "name": "Norway"
+                },
+                "B05006007": {
+                    "indent": 3,
+                    "name": "Sweden"
+                },
+                "B05006008": {
+                    "indent": 3,
+                    "name": "United Kingdom (inc. Crown Dependencies):"
+                },
+                "B05006009": {
+                    "indent": 4,
+                    "name": "United Kingdom, excluding England and Scotland"
+                },
+                "B05006010": {
+                    "indent": 4,
+                    "name": "England"
+                },
+                "B05006011": {
+                    "indent": 4,
+                    "name": "Scotland"
+                },
+                "B05006012": {
+                    "indent": 3,
+                    "name": "Other Northern Europe"
+                },
+                "B05006013": {
+                    "indent": 2,
+                    "name": "Western Europe:"
+                },
+                "B05006014": {
+                    "indent": 3,
+                    "name": "Austria"
+                },
+                "B05006015": {
+                    "indent": 3,
+                    "name": "Belgium"
+                },
+                "B05006016": {
+                    "indent": 3,
+                    "name": "France"
+                },
+                "B05006017": {
+                    "indent": 3,
+                    "name": "Germany"
+                },
+                "B05006018": {
+                    "indent": 3,
+                    "name": "Netherlands"
+                },
+                "B05006019": {
+                    "indent": 3,
+                    "name": "Switzerland"
+                },
+                "B05006020": {
+                    "indent": 3,
+                    "name": "Other Western Europe"
+                },
+                "B05006021": {
+                    "indent": 2,
+                    "name": "Southern Europe:"
+                },
+                "B05006022": {
+                    "indent": 3,
+                    "name": "Greece"
+                },
+                "B05006023": {
+                    "indent": 3,
+                    "name": "Italy"
+                },
+                "B05006024": {
+                    "indent": 3,
+                    "name": "Portugal"
+                },
+                "B05006025": {
+                    "indent": 4,
+                    "name": "Azores Islands"
+                },
+                "B05006026": {
+                    "indent": 3,
+                    "name": "Spain"
+                },
+                "B05006027": {
+                    "indent": 3,
+                    "name": "Other Southern Europe"
+                },
+                "B05006028": {
+                    "indent": 2,
+                    "name": "Eastern Europe:"
+                },
+                "B05006029": {
+                    "indent": 3,
+                    "name": "Albania"
+                },
+                "B05006030": {
+                    "indent": 3,
+                    "name": "Belarus"
+                },
+                "B05006031": {
+                    "indent": 3,
+                    "name": "Bosnia and Herzegovina"
+                },
+                "B05006032": {
+                    "indent": 3,
+                    "name": "Bulgaria"
+                },
+                "B05006033": {
+                    "indent": 3,
+                    "name": "Croatia"
+                },
+                "B05006034": {
+                    "indent": 3,
+                    "name": "Czechoslovakia (includes Czech Republic and Slovakia)"
+                },
+                "B05006035": {
+                    "indent": 3,
+                    "name": "Hungary"
+                },
+                "B05006036": {
+                    "indent": 3,
+                    "name": "Latvia"
+                },
+                "B05006037": {
+                    "indent": 3,
+                    "name": "Lithuania"
+                },
+                "B05006038": {
+                    "indent": 3,
+                    "name": "Moldova"
+                },
+                "B05006039": {
+                    "indent": 3,
+                    "name": "North Macedonia (Macedonia)"
+                },
+                "B05006040": {
+                    "indent": 3,
+                    "name": "Poland"
+                },
+                "B05006041": {
+                    "indent": 3,
+                    "name": "Romania"
+                },
+                "B05006042": {
+                    "indent": 3,
+                    "name": "Russia"
+                },
+                "B05006043": {
+                    "indent": 3,
+                    "name": "Serbia"
+                },
+                "B05006044": {
+                    "indent": 3,
+                    "name": "Ukraine"
+                },
+                "B05006045": {
+                    "indent": 3,
+                    "name": "Other Eastern Europe"
+                },
+                "B05006046": {
+                    "indent": 2,
+                    "name": "Europe, n.e.c."
+                },
+                "B05006047": {
+                    "indent": 1,
+                    "name": "Asia:"
+                },
+                "B05006048": {
+                    "indent": 2,
+                    "name": "Eastern Asia:"
+                },
+                "B05006049": {
+                    "indent": 3,
+                    "name": "China:"
+                },
+                "B05006050": {
+                    "indent": 4,
+                    "name": "China, excluding Hong Kong and Taiwan"
+                },
+                "B05006051": {
+                    "indent": 4,
+                    "name": "Hong Kong"
+                },
+                "B05006052": {
+                    "indent": 4,
+                    "name": "Taiwan"
+                },
+                "B05006053": {
+                    "indent": 3,
+                    "name": "Japan"
+                },
+                "B05006054": {
+                    "indent": 3,
+                    "name": "Korea"
+                },
+                "B05006055": {
+                    "indent": 3,
+                    "name": "Other Eastern Asia"
+                },
+                "B05006056": {
+                    "indent": 2,
+                    "name": "South Central Asia:"
+                },
+                "B05006057": {
+                    "indent": 3,
+                    "name": "Afghanistan"
+                },
+                "B05006058": {
+                    "indent": 3,
+                    "name": "Bangladesh"
+                },
+                "B05006059": {
+                    "indent": 3,
+                    "name": "Bhutan"
+                },
+                "B05006060": {
+                    "indent": 3,
+                    "name": "India"
+                },
+                "B05006061": {
+                    "indent": 3,
+                    "name": "Iran"
+                },
+                "B05006062": {
+                    "indent": 3,
+                    "name": "Kazakhstan"
+                },
+                "B05006063": {
+                    "indent": 3,
+                    "name": "Nepal"
+                },
+                "B05006064": {
+                    "indent": 3,
+                    "name": "Pakistan"
+                },
+                "B05006065": {
+                    "indent": 3,
+                    "name": "Sri Lanka"
+                },
+                "B05006066": {
+                    "indent": 3,
+                    "name": "Uzbekistan"
+                },
+                "B05006067": {
+                    "indent": 3,
+                    "name": "Other South Central Asia"
+                },
+                "B05006068": {
+                    "indent": 2,
+                    "name": "South Eastern Asia:"
+                },
+                "B05006069": {
+                    "indent": 3,
+                    "name": "Burma (Myanmar)"
+                },
+                "B05006070": {
+                    "indent": 3,
+                    "name": "Cambodia"
+                },
+                "B05006071": {
+                    "indent": 3,
+                    "name": "Indonesia"
+                },
+                "B05006072": {
+                    "indent": 3,
+                    "name": "Laos"
+                },
+                "B05006073": {
+                    "indent": 3,
+                    "name": "Malaysia"
+                },
+                "B05006074": {
+                    "indent": 3,
+                    "name": "Philippines"
+                },
+                "B05006075": {
+                    "indent": 3,
+                    "name": "Singapore"
+                },
+                "B05006076": {
+                    "indent": 3,
+                    "name": "Thailand"
+                },
+                "B05006077": {
+                    "indent": 3,
+                    "name": "Vietnam"
+                },
+                "B05006078": {
+                    "indent": 3,
+                    "name": "Other South Eastern Asia"
+                },
+                "B05006079": {
+                    "indent": 2,
+                    "name": "Western Asia:"
+                },
+                "B05006080": {
+                    "indent": 3,
+                    "name": "Armenia"
+                },
+                "B05006081": {
+                    "indent": 3,
+                    "name": "Azerbaijan"
+                },
+                "B05006082": {
+                    "indent": 3,
+                    "name": "Georgia"
+                },
+                "B05006083": {
+                    "indent": 3,
+                    "name": "Iraq"
+                },
+                "B05006084": {
+                    "indent": 3,
+                    "name": "Israel"
+                },
+                "B05006085": {
+                    "indent": 3,
+                    "name": "Jordan"
+                },
+                "B05006086": {
+                    "indent": 3,
+                    "name": "Kuwait"
+                },
+                "B05006087": {
+                    "indent": 3,
+                    "name": "Lebanon"
+                },
+                "B05006088": {
+                    "indent": 3,
+                    "name": "Saudi Arabia"
+                },
+                "B05006089": {
+                    "indent": 3,
+                    "name": "Syria"
+                },
+                "B05006090": {
+                    "indent": 3,
+                    "name": "Turkey"
+                },
+                "B05006091": {
+                    "indent": 3,
+                    "name": "United Arab Emirates"
+                },
+                "B05006092": {
+                    "indent": 3,
+                    "name": "Yemen"
+                },
+                "B05006093": {
+                    "indent": 3,
+                    "name": "Other Western Asia"
+                },
+                "B05006094": {
+                    "indent": 2,
+                    "name": "Asia, n.e.c."
+                },
+                "B05006095": {
+                    "indent": 1,
+                    "name": "Africa:"
+                },
+                "B05006096": {
+                    "indent": 2,
+                    "name": "Eastern Africa:"
+                },
+                "B05006097": {
+                    "indent": 3,
+                    "name": "Eritrea"
+                },
+                "B05006098": {
+                    "indent": 3,
+                    "name": "Ethiopia"
+                },
+                "B05006099": {
+                    "indent": 3,
+                    "name": "Kenya"
+                },
+                "B05006100": {
+                    "indent": 3,
+                    "name": "Somalia"
+                },
+                "B05006101": {
+                    "indent": 3,
+                    "name": "Tanzania"
+                },
+                "B05006102": {
+                    "indent": 3,
+                    "name": "Uganda"
+                },
+                "B05006103": {
+                    "indent": 3,
+                    "name": "Zimbabwe"
+                },
+                "B05006104": {
+                    "indent": 3,
+                    "name": "Other Eastern Africa"
+                },
+                "B05006105": {
+                    "indent": 2,
+                    "name": "Middle Africa:"
+                },
+                "B05006106": {
+                    "indent": 3,
+                    "name": "Cameroon"
+                },
+                "B05006107": {
+                    "indent": 3,
+                    "name": "Congo"
+                },
+                "B05006108": {
+                    "indent": 3,
+                    "name": "Democratic Republic of Congo (Zaire)"
+                },
+                "B05006109": {
+                    "indent": 3,
+                    "name": "Other Middle Africa"
+                },
+                "B05006110": {
+                    "indent": 2,
+                    "name": "Northern Africa:"
+                },
+                "B05006111": {
+                    "indent": 3,
+                    "name": "Algeria"
+                },
+                "B05006112": {
+                    "indent": 3,
+                    "name": "Egypt"
+                },
+                "B05006113": {
+                    "indent": 3,
+                    "name": "Morocco"
+                },
+                "B05006114": {
+                    "indent": 3,
+                    "name": "Sudan"
+                },
+                "B05006115": {
+                    "indent": 3,
+                    "name": "Other Northern Africa"
+                },
+                "B05006116": {
+                    "indent": 2,
+                    "name": "Southern Africa:"
+                },
+                "B05006117": {
+                    "indent": 3,
+                    "name": "South Africa"
+                },
+                "B05006118": {
+                    "indent": 3,
+                    "name": "Other Southern Africa"
+                },
+                "B05006119": {
+                    "indent": 2,
+                    "name": "Western Africa:"
+                },
+                "B05006120": {
+                    "indent": 3,
+                    "name": "Cabo Verde"
+                },
+                "B05006121": {
+                    "indent": 3,
+                    "name": "Ghana"
+                },
+                "B05006122": {
+                    "indent": 3,
+                    "name": "Ivory Coast"
+                },
+                "B05006123": {
+                    "indent": 3,
+                    "name": "Liberia"
+                },
+                "B05006124": {
+                    "indent": 3,
+                    "name": "Nigeria"
+                },
+                "B05006125": {
+                    "indent": 3,
+                    "name": "Senegal"
+                },
+                "B05006126": {
+                    "indent": 3,
+                    "name": "Sierra Leone"
+                },
+                "B05006127": {
+                    "indent": 3,
+                    "name": "Togo"
+                },
+                "B05006128": {
+                    "indent": 3,
+                    "name": "Other Western Africa"
+                },
+                "B05006129": {
+                    "indent": 2,
+                    "name": "Africa, n.e.c."
+                },
+                "B05006130": {
+                    "indent": 1,
+                    "name": "Oceania:"
+                },
+                "B05006131": {
+                    "indent": 2,
+                    "name": "Australia and New Zealand Subregion:"
+                },
+                "B05006132": {
+                    "indent": 3,
+                    "name": "Australia"
+                },
+                "B05006133": {
+                    "indent": 3,
+                    "name": "Other Australian and New Zealand Subregion"
+                },
+                "B05006134": {
+                    "indent": 2,
+                    "name": "Fiji"
+                },
+                "B05006135": {
+                    "indent": 2,
+                    "name": "Marshall Islands"
+                },
+                "B05006136": {
+                    "indent": 2,
+                    "name": "Micronesia"
+                },
+                "B05006137": {
+                    "indent": 2,
+                    "name": "Oceania, n.e.c."
+                },
+                "B05006138": {
+                    "indent": 1,
+                    "name": "Americas:"
+                },
+                "B05006139": {
+                    "indent": 2,
+                    "name": "Latin America:"
+                },
+                "B05006140": {
+                    "indent": 3,
+                    "name": "Caribbean:"
+                },
+                "B05006141": {
+                    "indent": 4,
+                    "name": "Bahamas"
+                },
+                "B05006142": {
+                    "indent": 4,
+                    "name": "Barbados"
+                },
+                "B05006143": {
+                    "indent": 4,
+                    "name": "Cuba"
+                },
+                "B05006144": {
+                    "indent": 4,
+                    "name": "Dominica"
+                },
+                "B05006145": {
+                    "indent": 4,
+                    "name": "Dominican Republic"
+                },
+                "B05006146": {
+                    "indent": 4,
+                    "name": "Grenada"
+                },
+                "B05006147": {
+                    "indent": 4,
+                    "name": "Haiti"
+                },
+                "B05006148": {
+                    "indent": 4,
+                    "name": "Jamaica"
+                },
+                "B05006149": {
+                    "indent": 4,
+                    "name": "St. Lucia"
+                },
+                "B05006150": {
+                    "indent": 4,
+                    "name": "St. Vincent and the Grenadines"
+                },
+                "B05006151": {
+                    "indent": 4,
+                    "name": "Trinidad and Tobago"
+                },
+                "B05006152": {
+                    "indent": 4,
+                    "name": "West Indies"
+                },
+                "B05006153": {
+                    "indent": 4,
+                    "name": "Other Caribbean"
+                },
+                "B05006154": {
+                    "indent": 3,
+                    "name": "Central America:"
+                },
+                "B05006155": {
+                    "indent": 4,
+                    "name": "Belize"
+                },
+                "B05006156": {
+                    "indent": 4,
+                    "name": "Costa Rica"
+                },
+                "B05006157": {
+                    "indent": 4,
+                    "name": "El Salvador"
+                },
+                "B05006158": {
+                    "indent": 4,
+                    "name": "Guatemala"
+                },
+                "B05006159": {
+                    "indent": 4,
+                    "name": "Honduras"
+                },
+                "B05006160": {
+                    "indent": 4,
+                    "name": "Mexico"
+                },
+                "B05006161": {
+                    "indent": 4,
+                    "name": "Nicaragua"
+                },
+                "B05006162": {
+                    "indent": 4,
+                    "name": "Panama"
+                },
+                "B05006163": {
+                    "indent": 4,
+                    "name": "Other Central America"
+                },
+                "B05006164": {
+                    "indent": 3,
+                    "name": "South America:"
+                },
+                "B05006165": {
+                    "indent": 4,
+                    "name": "Argentina"
+                },
+                "B05006166": {
+                    "indent": 4,
+                    "name": "Bolivia"
+                },
+                "B05006167": {
+                    "indent": 4,
+                    "name": "Brazil"
+                },
+                "B05006168": {
+                    "indent": 4,
+                    "name": "Chile"
+                },
+                "B05006169": {
+                    "indent": 4,
+                    "name": "Colombia"
+                },
+                "B05006170": {
+                    "indent": 4,
+                    "name": "Ecuador"
+                },
+                "B05006171": {
+                    "indent": 4,
+                    "name": "Guyana"
+                },
+                "B05006172": {
+                    "indent": 4,
+                    "name": "Peru"
+                },
+                "B05006173": {
+                    "indent": 4,
+                    "name": "Uruguay"
+                },
+                "B05006174": {
+                    "indent": 4,
+                    "name": "Venezuela"
+                },
+                "B05006175": {
+                    "indent": 4,
+                    "name": "Other South America"
+                },
+                "B05006176": {
+                    "indent": 2,
+                    "name": "Northern America:"
+                },
+                "B05006177": {
+                    "indent": 3,
+                    "name": "Canada"
+                },
+                "B05006178": {
+                    "indent": 3,
+                    "name": "Other Northern America"
+                }
+            },
+            "denominator_column_id": "B05006001",
+            "title": "Place of Birth for the Foreign-born Population in the United States",
+            "universe": "Foreign-born population excluding population born at sea"
+        }
+    }
+}

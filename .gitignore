@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Claude Code local settings
+.claude/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+
+# Scraper intermediates
+data/salt-lake-county/inmate_skipped.csv
+data/salt-lake-county/inmate_data.csv
+data/salt-lake-county/inmate_data_complete.csv
+data/utah-county/utah_county_inmates.xlsx

@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Utah County Jails — Foreign-Born Incarceration Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+          sans-serif;
+        background: #f0f2f5;
+        color: #333;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        background: white;
+        padding: 24px 30px 0;
+        border-radius: 8px 8px 0 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        margin-bottom: 0;
+      }
+
+      h1 {
+        font-size: 22px;
+        color: #1a2530;
+        margin-bottom: 4px;
+      }
+
+      .subtitle {
+        color: #7f8c8d;
+        font-size: 13px;
+        margin-bottom: 16px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #e0e0e0;
+        margin-top: 8px;
+      }
+
+      .tab-btn {
+        padding: 10px 24px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #7f8c8d;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.15s;
+      }
+
+      .tab-btn:hover {
+        color: #2c3e50;
+      }
+
+      .tab-btn.active {
+        color: #2980b9;
+        border-bottom-color: #2980b9;
+      }
+
+      .main-content {
+        background: white;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        padding: 24px 30px;
+        margin-bottom: 20px;
+      }
+
+      .data-note {
+        display: inline-block;
+        background: #eaf4fb;
+        color: #2980b9;
+        font-size: 12px;
+        padding: 3px 10px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 16px;
+        margin-bottom: 28px;
+      }
+
+      .stat-card {
+        background: #f8f9fa;
+        padding: 18px 20px;
+        border-radius: 8px;
+        border-left: 4px solid #2980b9;
+      }
+
+      .stat-card.green {
+        border-left-color: #27ae60;
+      }
+      .stat-card.red {
+        border-left-color: #e74c3c;
+      }
+      .stat-card.gray {
+        border-left-color: #95a5a6;
+      }
+
+      .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: #2c3e50;
+        line-height: 1;
+        margin-bottom: 6px;
+      }
+
+      .stat-label {
+        font-size: 11px;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      .chart-section {
+        margin-bottom: 28px;
+      }
+
+      .section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 14px;
+      }
+
+      .chart-wrapper {
+        position: relative;
+        max-width: 480px;
+        height: 280px;
+      }
+
+      .table-section {
+      }
+
+      .mode-toggle {
+        display: inline-flex;
+        background: #f0f2f5;
+        border-radius: 6px;
+        padding: 3px;
+        gap: 2px;
+        margin-left: 8px;
+        vertical-align: middle;
+      }
+
+      .mode-btn {
+        padding: 4px 14px;
+        border: none;
+        background: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #7f8c8d;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      .mode-btn.active {
+        background: white;
+        color: #2c3e50;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+      }
+
+      .table-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+
+      .table-search {
+        padding: 7px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        width: 220px;
+      }
+
+      .table-search:focus {
+        outline: none;
+        border-color: #2980b9;
+      }
+
+      .toggle-no-pop {
+        font-size: 12px;
+        color: #7f8c8d;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .toggle-no-pop input {
+        margin-right: 4px;
+        vertical-align: middle;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th {
+        background: #2c3e50;
+        color: white;
+        padding: 10px 14px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 12px;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+      }
+
+      th:hover {
+        background: #34495e;
+      }
+
+      td {
+        padding: 9px 14px;
+        border-bottom: 1px solid #f0f0f0;
+      }
+
+      tr:hover td {
+        background: #f8f9fa;
+      }
+
+      .rate-cell {
+        font-weight: 600;
+      }
+      .rate-high {
+        color: #c0392b;
+      }
+      .rate-mid {
+        color: #e67e22;
+      }
+      .rate-low {
+        color: #27ae60;
+      }
+      .rate-na {
+        color: #bdc3c7;
+      }
+
+      .bucket-row td {
+        font-style: italic;
+        color: #555;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 60px;
+        color: #7f8c8d;
+        font-size: 15px;
+      }
+      .error {
+        background: #e74c3c;
+        color: white;
+        padding: 16px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Utah County Jails — Foreign-Born Incarceration Dashboard</h1>
+        <p class="subtitle">
+          Incarceration rates by nativity and country of birth, compared against
+          county foreign-born population (ACS 2020–2024)
+        </p>
+        <div class="tabs">
+          <button class="tab-btn active" onclick="switchCounty('sl')">
+            Salt Lake County
+          </button>
+          <button class="tab-btn" onclick="switchCounty('ut')">
+            Utah County
+          </button>
+        </div>
+      </header>
+
+      <div id="loading" class="loading">Loading data…</div>
+      <div id="error" style="display: none"></div>
+
+      <div id="dashboard" class="main-content" style="display: none">
+        <span class="data-note" id="dataNoteLabel"></span>
+        <span class="mode-toggle" style="display: none">
+          <button
+            class="mode-btn active"
+            id="modeBookings"
+            onclick="setCountMode('bookings')"
+          >
+            All Bookings
+          </button>
+          <button
+            class="mode-btn"
+            id="modeUnique"
+            onclick="setCountMode('unique')"
+          >
+            Unique Individuals
+          </button>
+        </span>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="statTotal">—</div>
+            <div class="stat-label">Inmates w/ COB data</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-value" id="statForeignCount">—</div>
+            <div class="stat-label">Foreign-Born Inmates</div>
+          </div>
+          <div class="stat-card green">
+            <div class="stat-value" id="statNativeRate">—</div>
+            <div class="stat-label">US-Born Rate / 100K</div>
+          </div>
+          <div class="stat-card red">
+            <div class="stat-value" id="statForeignRate">—</div>
+            <div class="stat-label">Foreign-Born Rate / 100K</div>
+          </div>
+        </div>
+
+        <div class="chart-section">
+          <div class="section-title">
+            Incarceration Rate: US-Born vs. Foreign-Born (per 100,000)
+          </div>
+          <div class="chart-wrapper">
+            <canvas id="nativeForeignChart"></canvas>
+          </div>
+        </div>
+
+        <div class="table-section">
+          <div class="section-title">
+            Incarceration Rates by Country / Region of Birth (per 100,000)
+          </div>
+          <div class="table-controls">
+            <input
+              type="text"
+              class="table-search"
+              id="tableSearch"
+              placeholder="Search country…"
+              oninput="renderTable()"
+            />
+            <label class="toggle-no-pop">
+              <input type="checkbox" id="hideNoPop" onchange="renderTable()" />
+              Hide rows with no population data
+            </label>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th onclick="sortBy('country')">
+                  <span id="h-country">Country / Region ↕</span>
+                </th>
+                <th onclick="sortBy('population')" style="text-align: right">
+                  <span id="h-population">County Pop. ↕</span>
+                </th>
+                <th onclick="sortBy('inmates')" style="text-align: right">
+                  <span id="h-inmates">Inmates ↕</span>
+                </th>
+                <th onclick="sortBy('rate')" style="text-align: right">
+                  <span id="h-rate">Rate / 100K ↓</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ─── Small-country threshold ──────────────────────────────────────────────
+      const POP_THRESHOLD = 1500;
+
+      // Final catch-all bucket labels — these are never themselves redirected.
+      const FINAL_BUCKETS = new Set([
+        'EUROPE',
+        'ASIA',
+        'AFRICA',
+        'OCEANIA',
+        'CARIBBEAN',
+        'CENTRAL AMERICA',
+        'SOUTH AMERICA',
+        'NORTHERN AMERICA',
+      ]);
+
+      // Maps every ACS country/region directly to its regional catch-all.
+      // Named countries redirect only when pop < POP_THRESHOLD.
+      // "Other X", n.e.c., and existing broad labels always redirect.
+      const ACS_PARENT_BUCKET = {
+        // Europe
+        DENMARK: 'EUROPE',
+        IRELAND: 'EUROPE',
+        NORWAY: 'EUROPE',
+        SWEDEN: 'EUROPE',
+        'UNITED KINGDOM, EXCLUDING ENGLAND AND SCOTLAND': 'EUROPE',
+        'UNITED KINGDOM, EXCLUDING ENGLAND': 'EUROPE',
+        ENGLAND: 'EUROPE',
+        SCOTLAND: 'EUROPE',
+        AUSTRIA: 'EUROPE',
+        BELGIUM: 'EUROPE',
+        FRANCE: 'EUROPE',
+        GERMANY: 'EUROPE',
+        NETHERLANDS: 'EUROPE',
+        SWITZERLAND: 'EUROPE',
+        GREECE: 'EUROPE',
+        ITALY: 'EUROPE',
+        PORTUGAL: 'EUROPE',
+        'AZORES ISLANDS': 'EUROPE',
+        SPAIN: 'EUROPE',
+        ALBANIA: 'EUROPE',
+        BELARUS: 'EUROPE',
+        'BOSNIA AND HERZEGOVINA': 'EUROPE',
+        BULGARIA: 'EUROPE',
+        CROATIA: 'EUROPE',
+        'CZECHOSLOVAKIA (INCLUDES CZECH REPUBLIC AND SLOVAKIA)': 'EUROPE',
+        HUNGARY: 'EUROPE',
+        LATVIA: 'EUROPE',
+        LITHUANIA: 'EUROPE',
+        MOLDOVA: 'EUROPE',
+        'NORTH MACEDONIA (MACEDONIA)': 'EUROPE',
+        POLAND: 'EUROPE',
+        ROMANIA: 'EUROPE',
+        RUSSIA: 'EUROPE',
+        SERBIA: 'EUROPE',
+        UKRAINE: 'EUROPE',
+        'OTHER NORTHERN EUROPE': 'EUROPE',
+        'OTHER WESTERN EUROPE': 'EUROPE',
+        'OTHER SOUTHERN EUROPE': 'EUROPE',
+        'OTHER EASTERN EUROPE': 'EUROPE',
+        'EUROPE, N.E.C.': 'EUROPE',
+        // Asia
+        'CHINA, EXCLUDING HONG KONG AND TAIWAN': 'ASIA',
+        'CHINA, EXCLUDING TAIWAN': 'ASIA',
+        'HONG KONG': 'ASIA',
+        TAIWAN: 'ASIA',
+        JAPAN: 'ASIA',
+        KOREA: 'ASIA',
+        'OTHER EASTERN ASIA': 'ASIA',
+        AFGHANISTAN: 'ASIA',
+        BANGLADESH: 'ASIA',
+        BHUTAN: 'ASIA',
+        INDIA: 'ASIA',
+        IRAN: 'ASIA',
+        KAZAKHSTAN: 'ASIA',
+        NEPAL: 'ASIA',
+        PAKISTAN: 'ASIA',
+        'SRI LANKA': 'ASIA',
+        UZBEKISTAN: 'ASIA',
+        'OTHER SOUTH CENTRAL ASIA': 'ASIA',
+        'BURMA (MYANMAR)': 'ASIA',
+        CAMBODIA: 'ASIA',
+        INDONESIA: 'ASIA',
+        LAOS: 'ASIA',
+        MALAYSIA: 'ASIA',
+        PHILIPPINES: 'ASIA',
+        SINGAPORE: 'ASIA',
+        THAILAND: 'ASIA',
+        VIETNAM: 'ASIA',
+        'OTHER SOUTH EASTERN ASIA': 'ASIA',
+        ARMENIA: 'ASIA',
+        AZERBAIJAN: 'ASIA',
+        GEORGIA: 'ASIA',
+        IRAQ: 'ASIA',
+        ISRAEL: 'ASIA',
+        JORDAN: 'ASIA',
+        KUWAIT: 'ASIA',
+        LEBANON: 'ASIA',
+        'SAUDI ARABIA': 'ASIA',
+        SYRIA: 'ASIA',
+        TURKEY: 'ASIA',
+        'UNITED ARAB EMIRATES': 'ASIA',
+        YEMEN: 'ASIA',
+        'OTHER WESTERN ASIA': 'ASIA',
+        'ASIA, N.E.C.': 'ASIA',
+        // Africa
+        ERITREA: 'AFRICA',
+        ETHIOPIA: 'AFRICA',
+        KENYA: 'AFRICA',
+        SOMALIA: 'AFRICA',
+        TANZANIA: 'AFRICA',
+        UGANDA: 'AFRICA',
+        ZIMBABWE: 'AFRICA',
+        'OTHER EASTERN AFRICA': 'AFRICA',
+        CAMEROON: 'AFRICA',
+        CONGO: 'AFRICA',
+        'DEMOCRATIC REPUBLIC OF CONGO (ZAIRE)': 'AFRICA',
+        'OTHER MIDDLE AFRICA': 'AFRICA',
+        ALGERIA: 'AFRICA',
+        EGYPT: 'AFRICA',
+        MOROCCO: 'AFRICA',
+        SUDAN: 'AFRICA',
+        'OTHER NORTHERN AFRICA': 'AFRICA',
+        'SOUTH AFRICA': 'AFRICA',
+        'OTHER SOUTHERN AFRICA': 'AFRICA',
+        'CABO VERDE': 'AFRICA',
+        GHANA: 'AFRICA',
+        'IVORY COAST': 'AFRICA',
+        LIBERIA: 'AFRICA',
+        NIGERIA: 'AFRICA',
+        SENEGAL: 'AFRICA',
+        'SIERRA LEONE': 'AFRICA',
+        TOGO: 'AFRICA',
+        'OTHER WESTERN AFRICA': 'AFRICA',
+        'AFRICA, N.E.C.': 'AFRICA',
+        // SL County broad Africa labels (already aggregated)
+        'EASTERN AFRICA': 'AFRICA',
+        'WESTERN AFRICA': 'AFRICA',
+        'MIDDLE AND SOUTHERN AFRICA': 'AFRICA',
+        'NORTHERN AFRICA': 'AFRICA',
+        // Oceania
+        AUSTRALIA: 'OCEANIA',
+        FIJI: 'OCEANIA',
+        'MARSHALL ISLANDS': 'OCEANIA',
+        MICRONESIA: 'OCEANIA',
+        'AUSTRALIA AND NEW ZEALAND SUBREGION': 'OCEANIA',
+        'OTHER AUSTRALIAN AND NEW ZEALAND SUBREGION': 'OCEANIA',
+        'OCEANIA, N.E.C.': 'OCEANIA',
+        // Caribbean
+        BAHAMAS: 'CARIBBEAN',
+        BARBADOS: 'CARIBBEAN',
+        CUBA: 'CARIBBEAN',
+        DOMINICA: 'CARIBBEAN',
+        'DOMINICAN REPUBLIC': 'CARIBBEAN',
+        GRENADA: 'CARIBBEAN',
+        HAITI: 'CARIBBEAN',
+        JAMAICA: 'CARIBBEAN',
+        'ST. LUCIA': 'CARIBBEAN',
+        'ST. VINCENT AND THE GRENADINES': 'CARIBBEAN',
+        'TRINIDAD AND TOBAGO': 'CARIBBEAN',
+        'WEST INDIES': 'CARIBBEAN',
+        'OTHER CARIBBEAN': 'CARIBBEAN',
+        // Central America
+        BELIZE: 'CENTRAL AMERICA',
+        'COSTA RICA': 'CENTRAL AMERICA',
+        'EL SALVADOR': 'CENTRAL AMERICA',
+        GUATEMALA: 'CENTRAL AMERICA',
+        HONDURAS: 'CENTRAL AMERICA',
+        MEXICO: 'CENTRAL AMERICA',
+        NICARAGUA: 'CENTRAL AMERICA',
+        PANAMA: 'CENTRAL AMERICA',
+        'OTHER CENTRAL AMERICA': 'CENTRAL AMERICA',
+        // South America
+        ARGENTINA: 'SOUTH AMERICA',
+        BOLIVIA: 'SOUTH AMERICA',
+        BRAZIL: 'SOUTH AMERICA',
+        CHILE: 'SOUTH AMERICA',
+        COLOMBIA: 'SOUTH AMERICA',
+        ECUADOR: 'SOUTH AMERICA',
+        GUYANA: 'SOUTH AMERICA',
+        PERU: 'SOUTH AMERICA',
+        URUGUAY: 'SOUTH AMERICA',
+        VENEZUELA: 'SOUTH AMERICA',
+        'OTHER SOUTH AMERICA': 'SOUTH AMERICA',
+        // Northern America
+        CANADA: 'NORTHERN AMERICA',
+        'OTHER NORTHERN AMERICA': 'NORTHERN AMERICA',
+      };
+
+      // ─── County configs ────────────────────────────────────────────────────────
+      const COUNTIES = {
+        sl: {
+          name: 'Salt Lake County',
+          totalPop: 1185000,
+          foreignBornPop: 173681,
+          inmatesFile: 'data/salt-lake-county/inmate_combined.csv',
+          popFile: 'data/salt-lake-county/foreignbornpop.csv',
+          inmateField: 'cob',
+          note: 'Multiple snapshots · Sep 2024 – Jul 2025',
+        },
+        ut: {
+          name: 'Utah County',
+          totalPop: 705000,
+          foreignBornPop: 58150,
+          inmatesFile: 'data/utah-county/utah_county_inmates.csv',
+          popFile: 'data/utah-county/ut_county_foreign_born_named.csv',
+          inmateField: 'birth_country',
+          note: 'All bookings · Jan 2023 – Dec 2024',
+        },
+      };
+
+      // ─── Native-born sets ──────────────────────────────────────────────────────
+      // SL County data uses state names for US-born inmates
+      const SL_US_BORN = new Set([
+        'ALABAMA',
+        'ALASKA',
+        'ARIZONA',
+        'ARKANSAS',
+        'CALIFORNIA',
+        'COLORADO',
+        'CONNECTICUT',
+        'DELAWARE',
+        'FLORIDA',
+        'GEORGIA',
+        'HAWAII',
+        'IDAHO',
+        'ILLINOIS',
+        'INDIANA',
+        'IOWA',
+        'KANSAS',
+        'KENTUCKY',
+        'LOUISIANA',
+        'MAINE',
+        'MARYLAND',
+        'MASSACHUSETTS',
+        'MICHIGAN',
+        'MINNESOTA',
+        'MISSISSIPPI',
+        'MISSOURI',
+        'MONTANA',
+        'NEBRASKA',
+        'NEVADA',
+        'NEW HAMPSHIRE',
+        'NEW JERSEY',
+        'NEW MEXICO',
+        'NEW YORK',
+        'NORTH CAROLINA',
+        'NORTH DAKOTA',
+        'OHIO',
+        'OKLAHOMA',
+        'OREGON',
+        'PENNSYLVANIA',
+        'RHODE ISLAND',
+        'SOUTH CAROLINA',
+        'SOUTH DAKOTA',
+        'TENNESSEE',
+        'TEXAS',
+        'UTAH',
+        'VERMONT',
+        'VIRGINIA',
+        'WASHINGTON',
+        'WEST VIRGINIA',
+        'WISCONSIN',
+        'WYOMING',
+        'PUERTO RICO',
+        'GUAM',
+        'US VIRGIN ISLANDS',
+        'AMERICAN SAMOA',
+        'NORTHERN MARIANA ISLANDS',
+        'UNITED STATES',
+        'USA',
+        'US',
+        'AMERICA',
+        'VIRGIN ISLANDS',
+      ]);
+      // UT County data consistently records US-born as "USA" (and variants)
+      // Territories are kept as distinct birth countries
+      const UT_US_BORN = new Set([
+        'USA',
+        'UNITED STATES',
+        'UNITED STATES OF AMERICA',
+        'US',
+        'U.S.',
+        'U.S.A.',
+        'AMERICA',
+      ]);
+
+      // ─── SL County: inmate country → population label ─────────────────────────
+      // Population labels come from foreignbornpop.csv (trimmed, uppercased, colon stripped)
+      const SL_MAP = {
+        // Europe
+        IRELAND: 'IRELAND',
+        ENGLAND: 'ENGLAND',
+        'UNITED KINGDOM': 'UNITED KINGDOM, EXCLUDING ENGLAND',
+        SCOTLAND: 'UNITED KINGDOM, EXCLUDING ENGLAND',
+        WALES: 'UNITED KINGDOM, EXCLUDING ENGLAND',
+        JERSEY: 'UNITED KINGDOM, EXCLUDING ENGLAND',
+        FRANCE: 'FRANCE',
+        FRANCEF: 'FRANCE',
+        GERMANY: 'GERMANY',
+        NETHERLANDS: 'OTHER WESTERN EUROPE',
+        BELGIUM: 'OTHER WESTERN EUROPE',
+        AUSTRIA: 'OTHER WESTERN EUROPE',
+        SWITZERLAND: 'OTHER WESTERN EUROPE',
+        LUXEMBOURG: 'OTHER WESTERN EUROPE',
+        DENMARK: 'OTHER NORTHERN EUROPE',
+        SWEDEN: 'OTHER NORTHERN EUROPE',
+        NORWAY: 'OTHER NORTHERN EUROPE',
+        FINLAND: 'OTHER NORTHERN EUROPE',
+        ICELAND: 'OTHER NORTHERN EUROPE',
+        ITALY: 'ITALY',
+        PORTUGAL: 'PORTUGAL',
+        SPAIN: 'OTHER SOUTHERN EUROPE',
+        GREECE: 'OTHER SOUTHERN EUROPE',
+        'SAN MARINO': 'OTHER SOUTHERN EUROPE',
+        RUSSIA: 'RUSSIA',
+        UKRAINE: 'OTHER EASTERN EUROPE',
+        POLAND: 'POLAND',
+        ROMANIA: 'OTHER EASTERN EUROPE',
+        BULGARIA: 'OTHER EASTERN EUROPE',
+        LATVIA: 'OTHER EASTERN EUROPE',
+        LITHUANIA: 'OTHER EASTERN EUROPE',
+        ESTONIA: 'OTHER EASTERN EUROPE',
+        HUNGARY: 'OTHER EASTERN EUROPE',
+        'CZECH REPUBLIC': 'OTHER EASTERN EUROPE',
+        SLOVAKIA: 'OTHER EASTERN EUROPE',
+        CROATIA: 'OTHER EASTERN EUROPE',
+        SERBIA: 'OTHER EASTERN EUROPE',
+        BOSNIA: 'OTHER EASTERN EUROPE',
+        ALBANIA: 'OTHER EASTERN EUROPE',
+        MOLDOVA: 'OTHER EASTERN EUROPE',
+        BELARUS: 'OTHER EASTERN EUROPE',
+        // Asia
+        CHINA: 'CHINA, EXCLUDING TAIWAN',
+        TAIWAN: 'TAIWAN',
+        JAPAN: 'JAPAN',
+        KOREA: 'KOREA',
+        'SOUTH KOREA': 'KOREA',
+        'KOREA REPUBLIC OF': 'KOREA',
+        MONGOLIA: 'OTHER EASTERN ASIA',
+        'HONG KONG': 'CHINA, EXCLUDING TAIWAN',
+        INDIA: 'INDIA',
+        IRAN: 'IRAN',
+        PAKISTAN: 'OTHER SOUTH CENTRAL ASIA',
+        NEPAL: 'OTHER SOUTH CENTRAL ASIA',
+        AFGHANISTAN: 'OTHER SOUTH CENTRAL ASIA',
+        AFGHANINSTAN: 'OTHER SOUTH CENTRAL ASIA',
+        BANGLADESH: 'OTHER SOUTH CENTRAL ASIA',
+        'SRI LANKA': 'OTHER SOUTH CENTRAL ASIA',
+        KAZAKHSTAN: 'OTHER SOUTH CENTRAL ASIA',
+        KYRGYZSTAN: 'OTHER SOUTH CENTRAL ASIA',
+        UZBEKISTAN: 'OTHER SOUTH CENTRAL ASIA',
+        PHILIPPINES: 'PHILIPPINES',
+        PHILLIPPINES: 'PHILIPPINES',
+        VIETNAM: 'VIETNAM',
+        THAILAND: 'OTHER SOUTH EASTERN ASIA',
+        MYANMAR: 'OTHER SOUTH EASTERN ASIA',
+        CAMBODIA: 'OTHER SOUTH EASTERN ASIA',
+        LAOS: 'OTHER SOUTH EASTERN ASIA',
+        MALAYSIA: 'OTHER SOUTH EASTERN ASIA',
+        SINGAPORE: 'OTHER SOUTH EASTERN ASIA',
+        'REPUBLIC OF SINGAPORE': 'OTHER SOUTH EASTERN ASIA',
+        INDONESIA: 'OTHER SOUTH EASTERN ASIA',
+        ISRAEL: 'ISRAEL',
+        LEBANON: 'LEBANON',
+        IRAQ: 'OTHER WESTERN ASIA',
+        JORDAN: 'OTHER WESTERN ASIA',
+        SYRIA: 'OTHER WESTERN ASIA',
+        TURKEY: 'OTHER WESTERN ASIA',
+        'SAUDI ARABIA': 'OTHER WESTERN ASIA',
+        ARMENIA: 'OTHER WESTERN ASIA',
+        AZERBAIJAN: 'OTHER WESTERN ASIA',
+        EGYPT: 'NORTHERN AFRICA',
+        // Africa (SL County has broad regional categories)
+        NIGERIA: 'WESTERN AFRICA',
+        GHANA: 'WESTERN AFRICA',
+        LIBERIA: 'WESTERN AFRICA',
+        MALI: 'WESTERN AFRICA',
+        BENIN: 'WESTERN AFRICA',
+        NIGER: 'WESTERN AFRICA',
+        SENEGAL: 'WESTERN AFRICA',
+        'IVORY COAST': 'WESTERN AFRICA',
+        'CAPE VERDE': 'WESTERN AFRICA',
+        TOGO: 'WESTERN AFRICA',
+        KENYA: 'EASTERN AFRICA',
+        ETHIOPIA: 'EASTERN AFRICA',
+        SOMALIA: 'EASTERN AFRICA',
+        ERITREA: 'EASTERN AFRICA',
+        TANZANIA: 'EASTERN AFRICA',
+        UGANDA: 'EASTERN AFRICA',
+        ZIMBABWE: 'EASTERN AFRICA',
+        MALAWI: 'EASTERN AFRICA',
+        SUDAN: 'NORTHERN AFRICA',
+        MOROCCO: 'NORTHERN AFRICA',
+        ALGERIA: 'NORTHERN AFRICA',
+        TUNISIA: 'NORTHERN AFRICA',
+        LIBYA: 'NORTHERN AFRICA',
+        CONGO: 'MIDDLE AND SOUTHERN AFRICA',
+        ZAIRE: 'MIDDLE AND SOUTHERN AFRICA',
+        CHAD: 'MIDDLE AND SOUTHERN AFRICA',
+        GABON: 'MIDDLE AND SOUTHERN AFRICA',
+        CAMEROON: 'MIDDLE AND SOUTHERN AFRICA',
+        'SOUTH AFRICA': 'MIDDLE AND SOUTHERN AFRICA',
+        ZAMBIA: 'MIDDLE AND SOUTHERN AFRICA',
+        AFRICA: 'AFRICA, N.E.C.',
+        'CENTRAL AFRICAN REPUBLIC': 'MIDDLE AND SOUTHERN AFRICA',
+        'CONGO REPUBLIC': 'MIDDLE AND SOUTHERN AFRICA',
+        'DEM REPUB CONGO': 'MIDDLE AND SOUTHERN AFRICA',
+        RWANDA: 'EASTERN AFRICA',
+        BURUNDI: 'EASTERN AFRICA',
+        DJIBOUTI: 'EASTERN AFRICA',
+        'COTE DIVOIRE': 'WESTERN AFRICA',
+        'BOSNIA / HERZEGOVINA': 'OTHER EASTERN EUROPE',
+        'CHINA, PEOPLE REPUBLIC': 'CHINA, EXCLUDING TAIWAN',
+        // Oceania
+        AUSTRALIA: 'AUSTRALIA AND NEW ZEALAND SUBREGION',
+        'NEW ZEALAND': 'AUSTRALIA AND NEW ZEALAND SUBREGION',
+        FIJI: 'OCEANIA, N.E.C.',
+        SAMOA: 'OCEANIA, N.E.C.',
+        TONGA: 'OCEANIA, N.E.C.',
+        'MARSHALL ISLANDS': 'OCEANIA, N.E.C.',
+        MICRONESIA: 'OCEANIA, N.E.C.',
+        'COOK ISLANDS': 'OCEANIA, N.E.C.',
+        // Americas
+        MEXICO: 'MEXICO',
+        JALISCO: 'MEXICO',
+        'EL SALVADOR': 'EL SALVADOR',
+        GUATEMALA: 'OTHER CENTRAL AMERICA',
+        GUATAMALA: 'OTHER CENTRAL AMERICA',
+        HONDURAS: 'OTHER CENTRAL AMERICA',
+        NICARAGUA: 'OTHER CENTRAL AMERICA',
+        'COSTA RICA': 'OTHER CENTRAL AMERICA',
+        BELIZE: 'OTHER CENTRAL AMERICA',
+        PANAMA: 'OTHER CENTRAL AMERICA',
+        COLOMBIA: 'COLOMBIA',
+        COLUMBIA: 'COLOMBIA',
+        BRAZIL: 'BRAZIL',
+        BRASIL: 'BRAZIL',
+        VENEZUELA: 'OTHER SOUTH AMERICA',
+        VENEZULELA: 'OTHER SOUTH AMERICA',
+        PERU: 'OTHER SOUTH AMERICA',
+        CHILE: 'OTHER SOUTH AMERICA',
+        ECUADOR: 'OTHER SOUTH AMERICA',
+        ARGENTINA: 'OTHER SOUTH AMERICA',
+        BOLIVIA: 'OTHER SOUTH AMERICA',
+        GUYANA: 'OTHER SOUTH AMERICA',
+        PARAGUAY: 'OTHER SOUTH AMERICA',
+        URUGUAY: 'OTHER SOUTH AMERICA',
+        CUBA: 'CUBA',
+        JAMAICA: 'JAMAICA',
+        HAITI: 'OTHER CARIBBEAN',
+        'DOMINICAN REPUBLIC': 'OTHER CARIBBEAN',
+        DOMINICA: 'OTHER CARIBBEAN',
+        'TRINIDAD & TOBAGO': 'OTHER CARIBBEAN',
+        'TRINIDAD AND TOBAGO': 'OTHER CARIBBEAN',
+        GUADELOUPE: 'OTHER CARIBBEAN',
+        BARBADOS: 'OTHER CARIBBEAN',
+        BAHAMAS: 'OTHER CARIBBEAN',
+        CANADA: 'CANADA',
+      };
+
+      // ─── UT County: inmate country → ACS B05006 name ──────────────────────────
+      // Population labels come from ut_county_foreign_born_named.csv (name column, uppercased)
+      const UT_MAP = {
+        // Typos
+        COLUMBIA: 'COLOMBIA',
+        GUATAMALA: 'GUATEMALA',
+        VENEZULELA: 'VENEZUELA',
+        PHILLIPPINES: 'PHILIPPINES',
+        BRASIL: 'BRAZIL',
+        FRANCEF: 'FRANCE',
+        AFGHANINSTAN: 'AFGHANISTAN',
+        'KOREA REPUBLIC OF': 'KOREA',
+        'SOUTH KOREA': 'KOREA',
+        'REPUBLIC OF SINGAPORE': 'SINGAPORE',
+        ZAIRE: 'DEMOCRATIC REPUBLIC OF CONGO (ZAIRE)',
+        'CAPE VERDE': 'CABO VERDE',
+        // Americas
+        MEXICO: 'MEXICO',
+        JALISCO: 'MEXICO',
+        'EL SALVADOR': 'EL SALVADOR',
+        GUATEMALA: 'GUATEMALA',
+        HONDURAS: 'HONDURAS',
+        NICARAGUA: 'NICARAGUA',
+        'COSTA RICA': 'COSTA RICA',
+        BELIZE: 'BELIZE',
+        PANAMA: 'PANAMA',
+        COLOMBIA: 'COLOMBIA',
+        VENEZUELA: 'VENEZUELA',
+        PERU: 'PERU',
+        CHILE: 'CHILE',
+        ECUADOR: 'ECUADOR',
+        ARGENTINA: 'ARGENTINA',
+        BRAZIL: 'BRAZIL',
+        BOLIVIA: 'BOLIVIA',
+        GUYANA: 'GUYANA',
+        URUGUAY: 'URUGUAY',
+        PARAGUAY: 'OTHER SOUTH AMERICA',
+        CUBA: 'CUBA',
+        HAITI: 'HAITI',
+        'DOMINICAN REPUBLIC': 'DOMINICAN REPUBLIC',
+        DOMINICA: 'DOMINICA',
+        JAMAICA: 'JAMAICA',
+        'TRINIDAD & TOBAGO': 'TRINIDAD AND TOBAGO',
+        'TRINIDAD AND TOBAGO': 'TRINIDAD AND TOBAGO',
+        GUADELOUPE: 'OTHER CARIBBEAN',
+        CANADA: 'CANADA',
+        // Europe
+        ENGLAND: 'ENGLAND',
+        'UNITED KINGDOM': 'UNITED KINGDOM, EXCLUDING ENGLAND AND SCOTLAND',
+        SCOTLAND: 'UNITED KINGDOM, EXCLUDING ENGLAND AND SCOTLAND',
+        JERSEY: 'UNITED KINGDOM, EXCLUDING ENGLAND AND SCOTLAND',
+        FRANCE: 'FRANCE',
+        GERMANY: 'GERMANY',
+        NETHERLANDS: 'NETHERLANDS',
+        BELGIUM: 'BELGIUM',
+        AUSTRIA: 'AUSTRIA',
+        SWITZERLAND: 'SWITZERLAND',
+        IRELAND: 'IRELAND',
+        SWEDEN: 'SWEDEN',
+        DENMARK: 'DENMARK',
+        NORWAY: 'NORWAY',
+        ICELAND: 'OTHER NORTHERN EUROPE',
+        ITALY: 'ITALY',
+        SPAIN: 'SPAIN',
+        PORTUGAL: 'PORTUGAL',
+        GREECE: 'GREECE',
+        'SAN MARINO': 'OTHER SOUTHERN EUROPE',
+        RUSSIA: 'RUSSIA',
+        UKRAINE: 'UKRAINE',
+        POLAND: 'POLAND',
+        ROMANIA: 'ROMANIA',
+        BULGARIA: 'BULGARIA',
+        LATVIA: 'LATVIA',
+        BOSNIA: 'BOSNIA AND HERZEGOVINA',
+        HUNGARY: 'HUNGARY',
+        // Asia
+        CHINA: 'CHINA, EXCLUDING HONG KONG AND TAIWAN',
+        TAIWAN: 'TAIWAN',
+        'HONG KONG': 'HONG KONG',
+        JAPAN: 'JAPAN',
+        KOREA: 'KOREA',
+        MONGOLIA: 'OTHER EASTERN ASIA',
+        INDIA: 'INDIA',
+        IRAN: 'IRAN',
+        PAKISTAN: 'PAKISTAN',
+        NEPAL: 'NEPAL',
+        'SRI LANKA': 'SRI LANKA',
+        AFGHANISTAN: 'AFGHANISTAN',
+        KAZAKHSTAN: 'KAZAKHSTAN',
+        KYRGYZSTAN: 'OTHER SOUTH CENTRAL ASIA',
+        PHILIPPINES: 'PHILIPPINES',
+        VIETNAM: 'VIETNAM',
+        THAILAND: 'THAILAND',
+        MYANMAR: 'BURMA (MYANMAR)',
+        CAMBODIA: 'CAMBODIA',
+        LAOS: 'LAOS',
+        MALAYSIA: 'MALAYSIA',
+        SINGAPORE: 'SINGAPORE',
+        INDONESIA: 'INDONESIA',
+        IRAQ: 'IRAQ',
+        SYRIA: 'SYRIA',
+        TURKEY: 'TURKEY',
+        JORDAN: 'JORDAN',
+        ISRAEL: 'ISRAEL',
+        LEBANON: 'LEBANON',
+        'SAUDI ARABIA': 'SAUDI ARABIA',
+        ARMENIA: 'ARMENIA',
+        GEORGIA: 'GEORGIA',
+        // Africa
+        EGYPT: 'EGYPT',
+        SUDAN: 'SUDAN',
+        ETHIOPIA: 'ETHIOPIA',
+        KENYA: 'KENYA',
+        SOMALIA: 'SOMALIA',
+        ERITREA: 'ERITREA',
+        TANZANIA: 'TANZANIA',
+        UGANDA: 'UGANDA',
+        MALAWI: 'OTHER EASTERN AFRICA',
+        ZAMBIA: 'OTHER SOUTHERN AFRICA',
+        NIGERIA: 'NIGERIA',
+        GHANA: 'GHANA',
+        LIBERIA: 'LIBERIA',
+        MALI: 'OTHER WESTERN AFRICA',
+        BENIN: 'OTHER WESTERN AFRICA',
+        NIGER: 'OTHER WESTERN AFRICA',
+        CONGO: 'CONGO',
+        CHAD: 'OTHER MIDDLE AFRICA',
+        GABON: 'OTHER MIDDLE AFRICA',
+        'SOUTH AFRICA': 'SOUTH AFRICA',
+        AFRICA: 'AFRICA, N.E.C.',
+        'CENTRAL AFRICAN REPUBLIC': 'OTHER MIDDLE AFRICA',
+        'CONGO REPUBLIC': 'OTHER MIDDLE AFRICA',
+        'DEM REPUB CONGO': 'DEMOCRATIC REPUBLIC OF CONGO (ZAIRE)',
+        RWANDA: 'OTHER EASTERN AFRICA',
+        BURUNDI: 'OTHER EASTERN AFRICA',
+        DJIBOUTI: 'OTHER EASTERN AFRICA',
+        'COTE DIVOIRE': 'OTHER WESTERN AFRICA',
+        'BOSNIA / HERZEGOVINA': 'OTHER EASTERN EUROPE',
+        'CHINA, PEOPLE REPUBLIC': 'CHINA, EXCLUDING HONG KONG AND TAIWAN',
+        'WESTERN SAMOA': 'OCEANIA, N.E.C.',
+        // Oceania
+        AUSTRALIA: 'AUSTRALIA',
+        'NEW ZEALAND': 'OTHER AUSTRALIAN AND NEW ZEALAND SUBREGION',
+        FIJI: 'FIJI',
+        MICRONESIA: 'MICRONESIA',
+        'MARSHALL ISLANDS': 'MARSHALL ISLANDS',
+        SAMOA: 'OCEANIA, N.E.C.',
+        TONGA: 'OCEANIA, N.E.C.',
+        'COOK ISLANDS': 'OCEANIA, N.E.C.',
+      };
+
+      // ─── State ────────────────────────────────────────────────────────────────
+      let activeCounty = 'sl';
+      let countyRawCache = {}; // id → { inmateRows, popRows }
+      let countMode = 'bookings'; // 'bookings' | 'unique'
+      let tableData = [];
+      let sortCol = 'rate';
+      let sortAsc = false;
+      let nfChart = null;
+
+      // ─── Boot ─────────────────────────────────────────────────────────────────
+      loadCounty('sl');
+
+      function switchCounty(id) {
+        activeCounty = id;
+        document.querySelectorAll('.tab-btn').forEach((b, i) => {
+          b.classList.toggle(
+            'active',
+            (i === 0 && id === 'sl') || (i === 1 && id === 'ut')
+          );
+        });
+        document.querySelector('.mode-toggle').style.display =
+          id === 'sl' ? 'none' : '';
+        if (id === 'sl' && countMode !== 'bookings') setCountMode('bookings');
+        if (countyRawCache[id]) {
+          renderCounty(id);
+        } else {
+          document.getElementById('dashboard').style.display = 'none';
+          document.getElementById('loading').style.display = 'block';
+          loadCounty(id);
+        }
+      }
+
+      function setCountMode(mode) {
+        countMode = mode;
+        document
+          .getElementById('modeBookings')
+          .classList.toggle('active', mode === 'bookings');
+        document
+          .getElementById('modeUnique')
+          .classList.toggle('active', mode === 'unique');
+        if (countyRawCache[activeCounty]) renderCounty(activeCounty);
+      }
+
+      function renderCounty(id) {
+        const { inmateRows, popRows } = countyRawCache[id];
+        render(processData(id, inmateRows, popRows));
+      }
+
+      function loadCounty(id) {
+        const cfg = COUNTIES[id];
+        let inmatesDone = false,
+          popDone = false;
+        let inmateRows = [],
+          popRows = [];
+
+        function tryProcess() {
+          if (!inmatesDone || !popDone) return;
+          countyRawCache[id] = { inmateRows, popRows };
+          if (activeCounty === id) renderCounty(id);
+        }
+
+        Papa.parse(cfg.inmatesFile, {
+          download: true,
+          header: true,
+          complete(r) {
+            inmateRows = r.data.filter(
+              (row) => row[cfg.inmateField] !== undefined
+            );
+            inmatesDone = true;
+            tryProcess();
+          },
+          error(e) {
+            showError('Could not load inmate data: ' + e.message);
+          },
+        });
+
+        Papa.parse(cfg.popFile, {
+          download: true,
+          header: true,
+          complete(r) {
+            popRows = r.data;
+            popDone = true;
+            tryProcess();
+          },
+          error(e) {
+            showError('Could not load population data: ' + e.message);
+          },
+        });
+      }
+
+      // ─── Parse population data ────────────────────────────────────────────────
+      function parsePopulation(id, popRows) {
+        const map = new Map(); // UPPERCASE label → population
+        if (id === 'sl') {
+          popRows.forEach((row) => {
+            let label = row['Label (Grouping)'];
+            const est = row['Salt Lake County, Utah!!Estimate'];
+            if (!label || !est) return;
+            label = label.trim();
+            if (label.endsWith(':')) return; // skip subtotal headers
+            const pop = parseInt(est.replace(/[^0-9]/g, ''));
+            if (!isNaN(pop)) map.set(label.toUpperCase(), pop);
+          });
+        } else {
+          popRows.forEach((row) => {
+            const name = (row.name || '').trim();
+            const est = row.estimate;
+            if (!name || !est) return;
+            if (name.endsWith(':')) return;
+            const pop = parseInt(est);
+            if (!isNaN(pop)) map.set(name.toUpperCase(), pop);
+          });
+        }
+        return map;
+      }
+
+      // ─── Process ──────────────────────────────────────────────────────────────
+      function processData(id, inmateRowsRaw, popRows) {
+        const cfg = COUNTIES[id];
+        const countryMap = id === 'sl' ? SL_MAP : UT_MAP;
+        const usBornSet = id === 'sl' ? SL_US_BORN : UT_US_BORN;
+        const nameField = id === 'sl' ? 'name' : 'full_name';
+        const popMap = parsePopulation(id, popRows);
+
+        // Deduplicate by person name when in unique-individuals mode
+        let inmateRows = inmateRowsRaw;
+        if (countMode === 'unique') {
+          const seen = new Set();
+          inmateRows = inmateRowsRaw.filter((row) => {
+            const name = (row[nameField] || '').trim().toUpperCase();
+            if (!name || seen.has(name)) return false;
+            seen.add(name);
+            return true;
+          });
+        }
+
+        // Build redirect map: below-threshold and always-redirect entries fold into
+        // their continental bucket and don't get their own table row.
+        // ALL entries contribute to bucket totals regardless of threshold.
+        const ALWAYS_REDIRECT = (label) =>
+          label.startsWith('OTHER ') ||
+          label.includes('N.E.C') ||
+          label === 'EASTERN AFRICA' ||
+          label === 'WESTERN AFRICA' ||
+          label === 'MIDDLE AND SOUTHERN AFRICA' ||
+          label === 'NORTHERN AFRICA' ||
+          label === 'AUSTRALIA AND NEW ZEALAND SUBREGION';
+
+        // Reset bucket totals to 0 so we build them from parts
+        FINAL_BUCKETS.forEach((b) => popMap.set(b, 0));
+
+        const redirectMap = new Map();
+        popMap.forEach((pop, label) => {
+          if (FINAL_BUCKETS.has(label)) return;
+          const parent = ACS_PARENT_BUCKET[label];
+          if (!parent) return;
+          // Always accumulate into the continental bucket total
+          popMap.set(parent, (popMap.get(parent) || 0) + pop);
+          // Only hide from table if below threshold or always-redirect
+          if (ALWAYS_REDIRECT(label) || pop < POP_THRESHOLD) {
+            redirectMap.set(label, parent);
+          }
+        });
+
+        // Count inmates per label
+        const inmateCounts = new Map();
+        let nativeBorn = 0,
+          foreignBorn = 0,
+          noCOB = 0;
+
+        inmateRows.forEach((row) => {
+          const raw = (row[cfg.inmateField] || '').trim().toUpperCase();
+          if (!raw) {
+            noCOB++;
+            return;
+          }
+
+          if (usBornSet.has(raw)) {
+            nativeBorn++;
+            return;
+          }
+
+          foreignBorn++;
+          const normalized = countryMap[raw] || raw;
+          // Always count toward the continental bucket (if one exists)
+          if (!FINAL_BUCKETS.has(normalized)) {
+            const parent = ACS_PARENT_BUCKET[normalized];
+            if (parent)
+              inmateCounts.set(parent, (inmateCounts.get(parent) || 0) + 1);
+          }
+          // Also count as own row unless folded into bucket
+          if (!redirectMap.has(normalized)) {
+            inmateCounts.set(
+              normalized,
+              (inmateCounts.get(normalized) || 0) + 1
+            );
+          }
+        });
+
+        // Build table rows
+        const rows = [];
+        const handled = new Set();
+
+        // First: every population entry that wasn't redirected away
+        popMap.forEach((pop, label) => {
+          if (pop === 0) return;
+          if (redirectMap.has(label)) return; // merged into parent, skip
+          const count = inmateCounts.get(label) || 0;
+          if (count === 0 && pop < 200) return; // skip negligible pop with no inmates
+          const rate = count > 0 ? (count / pop) * 100000 : 0;
+          const isBucket = FINAL_BUCKETS.has(label);
+          rows.push({
+            country: label,
+            population: pop,
+            inmates: count,
+            rate,
+            hasPopData: true,
+            isBucket,
+          });
+          if (count > 0) handled.add(label);
+        });
+
+        // Then: inmate countries with no matching population label
+        inmateCounts.forEach((count, label) => {
+          if (
+            handled.has(label) ||
+            (popMap.has(label) && popMap.get(label) > 0)
+          )
+            return;
+          rows.push({
+            country: label,
+            population: 0,
+            inmates: count,
+            rate: 0,
+            hasPopData: false,
+            isBucket: false,
+          });
+        });
+
+        return {
+          id,
+          cfg,
+          nativeBorn,
+          foreignBorn,
+          noCOB,
+          rows,
+          nativePop: cfg.totalPop - cfg.foreignBornPop,
+          foreignPop: cfg.foreignBornPop,
+        };
+      }
+
+      // ─── Render ───────────────────────────────────────────────────────────────
+      function render(data) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+
+        const { cfg, nativeBorn, foreignBorn, nativePop, foreignPop, rows } =
+          data;
+        const nativeRate = (nativeBorn / nativePop) * 100000;
+        const foreignRate = (foreignBorn / foreignPop) * 100000;
+
+        document.getElementById('dataNoteLabel').textContent = cfg.note;
+        document.getElementById('statTotal').textContent = (
+          nativeBorn + foreignBorn
+        ).toLocaleString();
+        document.getElementById('statForeignCount').textContent =
+          foreignBorn.toLocaleString();
+        document.getElementById('statNativeRate').textContent =
+          nativeRate.toFixed(1);
+        document.getElementById('statForeignRate').textContent =
+          foreignRate.toFixed(1);
+
+        renderChart(nativeRate, foreignRate);
+
+        tableData = rows;
+        sortCol = 'rate';
+        sortAsc = false;
+        renderTable();
+      }
+
+      function renderChart(nativeRate, foreignRate) {
+        const ctx = document.getElementById('nativeForeignChart');
+        if (nfChart) nfChart.destroy();
+        nfChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['US-Born', 'Foreign-Born'],
+            datasets: [
+              {
+                data: [nativeRate, foreignRate],
+                backgroundColor: ['#27ae60', '#e74c3c'],
+                borderRadius: 4,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: (ctx) => ` ${ctx.parsed.y.toFixed(1)} per 100K`,
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: 'Rate per 100,000 population' },
+              },
+            },
+          },
+        });
+      }
+
+      function renderTable() {
+        const search = document
+          .getElementById('tableSearch')
+          .value.trim()
+          .toLowerCase();
+        const hideNoPop = document.getElementById('hideNoPop').checked;
+
+        let rows = tableData.filter((r) => {
+          if (r.inmates === 0) return false;
+          if (hideNoPop && !r.hasPopData) return false;
+          if (search && !r.country.toLowerCase().includes(search)) return false;
+          return true;
+        });
+
+        rows.sort((a, b) => {
+          let av = a[sortCol],
+            bv = b[sortCol];
+          if (sortCol === 'country') {
+            av = av.toLowerCase();
+            bv = bv.toLowerCase();
+          }
+          // rows with no pop data always sort to bottom when sorting by rate
+          if (sortCol === 'rate') {
+            if (!a.hasPopData && b.hasPopData) return 1;
+            if (a.hasPopData && !b.hasPopData) return -1;
+          }
+          if (av < bv) return sortAsc ? -1 : 1;
+          if (av > bv) return sortAsc ? 1 : -1;
+          return 0;
+        });
+
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        rows.forEach((row) => {
+          const tr = document.createElement('tr');
+          if (row.isBucket) tr.className = 'bucket-row';
+
+          let rateDisplay, rateClass;
+          if (!row.hasPopData || row.population === 0) {
+            rateDisplay = 'N/A';
+            rateClass = 'rate-na';
+          } else {
+            rateDisplay = row.rate.toFixed(1);
+            rateClass =
+              row.rate > 500
+                ? 'rate-high'
+                : row.rate > 100
+                ? 'rate-mid'
+                : 'rate-low';
+          }
+
+          const popDisplay =
+            row.population > 0 ? row.population.toLocaleString() : '—';
+          const label = formatLabel(row.country);
+
+          tr.innerHTML = `
+            <td>${label}</td>
+            <td style="text-align:right">${popDisplay}</td>
+            <td style="text-align:right">${row.inmates}</td>
+            <td style="text-align:right" class="rate-cell ${rateClass}">${rateDisplay}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        // Update sort indicators
+        ['country', 'population', 'inmates', 'rate'].forEach((col) => {
+          const el = document.getElementById(`h-${col}`);
+          const base = {
+            country: 'Country / Region',
+            population: 'County Pop.',
+            inmates: 'Inmates',
+            rate: 'Rate / 100K',
+          }[col];
+          el.textContent =
+            base + (sortCol === col ? (sortAsc ? ' ↑' : ' ↓') : ' ↕');
+        });
+      }
+
+      function sortBy(col) {
+        if (sortCol === col) {
+          sortAsc = !sortAsc;
+        } else {
+          sortCol = col;
+          sortAsc = false;
+        }
+        renderTable();
+      }
+
+      function formatLabel(raw) {
+        // Title-case the label for display
+        return raw
+          .toLowerCase()
+          .replace(/(?:^|\s|,|-)\S/g, (c) => c.toUpperCase())
+          .replace(/\bN\.e\.c\.?/gi, 'n.e.c.')
+          .replace(/\bAnd\b/g, 'and')
+          .replace(/\bOf\b/g, 'of')
+          .replace(/\bThe\b/g, 'the')
+          .replace(/\bA\b/g, 'a')
+          .replace(/\b(Inc)\b/g, 'inc.')
+          .replace(/^./, (c) => c.toUpperCase()); // always capitalize first char
+      }
+
+      function showError(msg) {
+        document.getElementById('loading').style.display = 'none';
+        const el = document.getElementById('error');
+        el.style.display = 'block';
+        el.className = 'error';
+        el.textContent = msg;
+      }
+    </script>
+  </body>
+</html>
